@@ -79,7 +79,6 @@ func int32ToBytes(i int) []byte {
 }
 
 func framesToData(frames []Frame, wfmt WaveFmt) (WaveData, []byte) {
-	b := []byte{}
 	raw := samplesToRawData(frames, wfmt)
 
 	// We receive frames but have to store the size of the samples
@@ -88,6 +87,7 @@ func framesToData(frames []Frame, wfmt WaveFmt) (WaveData, []byte) {
 	subBytes := int32ToBytes(subchunksize)
 
 	// construct the data part..
+	b := make([]byte, 0, 4+4+len(raw))
 	b = append(b, Subchunk2ID...)
 	b = append(b, subBytes...)
 	b = append(b, raw...)
