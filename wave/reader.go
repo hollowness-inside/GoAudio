@@ -1,7 +1,6 @@
 package wave
 
 import (
-	"bytes"
 	"encoding/binary"
 	"io"
 	"io/ioutil"
@@ -94,48 +93,22 @@ func bitsToFloat(b []byte) float64 {
 }
 
 func bits16ToInt(b []byte) int {
-	if len(b) != 2 {
-		panic("Expected size 4!")
-	}
-	var payload int16
-	buf := bytes.NewReader(b)
-	err := binary.Read(buf, binary.LittleEndian, &payload)
-	if err != nil {
-		// TODO: make safe
-		panic(err)
-	}
-	return int(payload) // easier to work with ints
+	_ = b[1]
+	out := (int32(b[1]) << 8) | int32(b[0])
+	return int(out)
 }
 
 func bits24ToInt(b []byte) int {
-	if len(b) != 3 {
-		panic("Expected size 3!")
-	}
-	// add some padding to turn a 24-bit integer into a 32-bit integer
-	b = append([]byte{0x00}, b...)
-	var payload int32
-	buf := bytes.NewReader(b)
-	err := binary.Read(buf, binary.LittleEndian, &payload)
-	if err != nil {
-		// TODO: make safe
-		panic(err)
-	}
-	return int(payload) // easier to work with ints
+	_ = b[2]
+	out := (int32(b[2]) << 24) | (int32(b[1]) << 16) | (int32(b[0]) << 8)
+	return int(out)
 }
 
 // turn a 32-bit byte array into an int
 func bits32ToInt(b []byte) int {
-	if len(b) != 4 {
-		panic("Expected size 4!")
-	}
-	var payload int32
-	buf := bytes.NewReader(b)
-	err := binary.Read(buf, binary.LittleEndian, &payload)
-	if err != nil {
-		// TODO: make safe
-		panic(err)
-	}
-	return int(payload) // easier to work with ints
+	_ = b[3]
+	out := (int32(b[3]) << 24) | (int32(b[2]) << 16) | (int32(b[1]) << 8) | int32(b[0])
+	return int(out)
 }
 
 func readData(b []byte, wfmt WaveFmt) WaveData {
@@ -250,13 +223,7 @@ func readHeader(b []byte) WaveHeader {
 	}
 
 	chunkSize := b[4:8]
-	var size uint32
-	buf := bytes.NewReader(chunkSize)
-	err := binary.Read(buf, binary.LittleEndian, &size)
-	if err != nil {
-		panic(err)
-	}
-	hdr.ChunkSize = int(size) // easier to work with ints
+	hdr.ChunkSize = bits32ToInt(chunkSize) // easier to work with ints
 
 	format := b[8:12]
 	if string(format) != "WAVE" {
