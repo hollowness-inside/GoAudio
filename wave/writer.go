@@ -79,7 +79,6 @@ func int32ToBytes(i int) []byte {
 }
 
 func framesToData(frames []Frame, wfmt WaveFmt) (WaveData, []byte) {
-	b := []byte{}
 	raw := samplesToRawData(frames, wfmt)
 
 	// We receive frames but have to store the size of the samples
@@ -88,6 +87,7 @@ func framesToData(frames []Frame, wfmt WaveFmt) (WaveData, []byte) {
 	subBytes := int32ToBytes(subchunksize)
 
 	// construct the data part..
+	b := make([]byte, 0, 8+len(raw))
 	b = append(b, Subchunk2ID...)
 	b = append(b, subBytes...)
 	b = append(b, raw...)
@@ -103,7 +103,7 @@ func framesToData(frames []Frame, wfmt WaveFmt) (WaveData, []byte) {
 
 func floatToBytes(f float64, nBytes int) []byte {
 	bits := math.Float64bits(f)
-	bs := make([]byte, 8)
+	bs := make([]byte, 0, 8)
 	binary.LittleEndian.PutUint64(bs, bits)
 	// trim padding
 	switch nBytes {
@@ -134,8 +134,6 @@ func rescaleFrame(s Frame, bits int) int {
 }
 
 func fmtToBytes(wfmt WaveFmt) []byte {
-	b := []byte{}
-
 	subchunksize := int32ToBytes(wfmt.Subchunk1Size)
 	audioformat := int16ToBytes(wfmt.AudioFormat)
 	numchans := int16ToBytes(wfmt.NumChannels)
@@ -144,6 +142,7 @@ func fmtToBytes(wfmt WaveFmt) []byte {
 	blockalign := int16ToBytes(wfmt.BlockAlign)
 	bitsPerSample := int16ToBytes(wfmt.BitsPerSample)
 
+	b := make([]byte, 0, 23)
 	b = append(b, wfmt.Subchunk1ID...)
 	b = append(b, subchunksize...)
 	b = append(b, audioformat...)
@@ -159,11 +158,11 @@ func fmtToBytes(wfmt WaveFmt) []byte {
 // turn the sample to a valid header
 func createHeader(wd WaveData) []byte {
 	// write chunkID
-	bits := []byte{}
 
 	chunksize := 36 + wd.Subchunk2Size
 	cb := int32ToBytes(chunksize)
 
+	bits := make([]byte, 0, 12)
 	bits = append(bits, ChunkID...) // in theory switch on endianness..
 	bits = append(bits, cb...)
 	bits = append(bits, WaveID...)
