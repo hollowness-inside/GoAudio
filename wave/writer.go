@@ -3,7 +3,6 @@ package wave
 import (
 	"encoding/binary"
 	"io"
-	"math"
 	"os"
 )
 
@@ -97,20 +96,6 @@ func framesToData(frames []Frame, wfmt WaveFmt) (WaveData, []byte) {
 	return wd, b
 }
 
-func floatToBytes(f float64, nBytes int) []byte {
-	bits := math.Float64bits(f)
-	bs := make([]byte, 0, 8)
-	binary.LittleEndian.PutUint64(bs, bits)
-	// trim padding
-	switch nBytes {
-	case 2:
-		return bs[:2]
-	case 4:
-		return bs[:4]
-	}
-	return bs
-}
-
 // Turn the samples into raw data...
 func samplesToRawData(samples []Frame, props WaveFmt) []byte {
 	raw := []byte{}
@@ -129,19 +114,7 @@ func rescaleFrame(s Frame, bits int) int {
 }
 
 func fmtToBytes(wfmt WaveFmt) []byte {
-	b := []byte{}
-
-	subchunksize := int32ToBytes(wfmt.Subchunk1Size)
-	audioformat := int16ToBytes(wfmt.AudioFormat)
-	numchans := int16ToBytes(wfmt.NumChannels)
-	sr := int32ToBytes(wfmt.SampleRate)
-	br := int32ToBytes(wfmt.ByteRate)
-	blockalign := int16ToBytes(wfmt.BlockAlign)
-	bitsPerSample := int16ToBytes(wfmt.BitsPerSample)
-
-=======
 	b := make([]byte, 0, 23)
->>>>>>> Stashed changes
 	b = append(b, wfmt.Subchunk1ID...)
 	b = appendInt32(b, wfmt.Subchunk1Size)
 	b = appendInt16(b, wfmt.AudioFormat)
