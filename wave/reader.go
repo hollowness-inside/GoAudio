@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"strings"
+	"unsafe"
 )
 
 // type aliases for conversion functions
@@ -94,48 +95,22 @@ func bitsToFloat(b []byte) float64 {
 }
 
 func bits16ToInt(b []byte) int {
-	if len(b) != 2 {
-		panic("Expected size 4!")
-	}
-	var payload int16
-	buf := bytes.NewReader(b)
-	err := binary.Read(buf, binary.LittleEndian, &payload)
-	if err != nil {
-		// TODO: make safe
-		panic(err)
-	}
-	return int(payload) // easier to work with ints
+	_ = b[1]
+	out := *(*int16)(unsafe.Pointer(&b[0]))
+	return int(out)
 }
 
 func bits24ToInt(b []byte) int {
-	if len(b) != 3 {
-		panic("Expected size 3!")
-	}
-	// add some padding to turn a 24-bit integer into a 32-bit integer
-	b = append([]byte{0x00}, b...)
-	var payload int32
-	buf := bytes.NewReader(b)
-	err := binary.Read(buf, binary.LittleEndian, &payload)
-	if err != nil {
-		// TODO: make safe
-		panic(err)
-	}
-	return int(payload) // easier to work with ints
+	_ = b[2]
+	out := *(*int32)(unsafe.Pointer(&b[0])) << 8
+	return int(out)
 }
 
 // turn a 32-bit byte array into an int
 func bits32ToInt(b []byte) int {
-	if len(b) != 4 {
-		panic("Expected size 4!")
-	}
-	var payload int32
-	buf := bytes.NewReader(b)
-	err := binary.Read(buf, binary.LittleEndian, &payload)
-	if err != nil {
-		// TODO: make safe
-		panic(err)
-	}
-	return int(payload) // easier to work with ints
+	_ = b[3]
+	out := *(*int32)(unsafe.Pointer(&b[0]))
+	return int(out)
 }
 
 func readData(b []byte, wfmt WaveFmt) WaveData {
