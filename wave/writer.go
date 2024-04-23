@@ -76,7 +76,6 @@ func appendInt32(b []byte, i int) []byte {
 }
 
 func framesToData(frames []Frame, wfmt WaveFmt) (WaveData, []byte) {
-	b := []byte{}
 	raw := samplesToRawData(frames, wfmt)
 
 	// We receive frames but have to store the size of the samples
@@ -84,6 +83,7 @@ func framesToData(frames []Frame, wfmt WaveFmt) (WaveData, []byte) {
 	subchunksize := (len(frames) * wfmt.NumChannels * wfmt.BitsPerSample) / 8
 
 	// construct the data part..
+	b := make([]byte, 0, 8+len(raw))
 	b = append(b, Subchunk2ID...)
 	b = appendInt32(b, subchunksize)
 	b = append(b, raw...)
@@ -99,7 +99,7 @@ func framesToData(frames []Frame, wfmt WaveFmt) (WaveData, []byte) {
 
 func floatToBytes(f float64, nBytes int) []byte {
 	bits := math.Float64bits(f)
-	bs := make([]byte, 8)
+	bs := make([]byte, 0, 8)
 	binary.LittleEndian.PutUint64(bs, bits)
 	// trim padding
 	switch nBytes {
@@ -129,7 +129,6 @@ func rescaleFrame(s Frame, bits int) int {
 }
 
 func fmtToBytes(wfmt WaveFmt) []byte {
-<<<<<<< Updated upstream
 	b := []byte{}
 
 	subchunksize := int32ToBytes(wfmt.Subchunk1Size)
@@ -158,10 +157,10 @@ func fmtToBytes(wfmt WaveFmt) []byte {
 // turn the sample to a valid header
 func createHeader(wd WaveData) []byte {
 	// write chunkID
-	bits := []byte{}
 
 	chunksize := 36 + wd.Subchunk2Size
 
+	bits := make([]byte, 0, 12)
 	bits = append(bits, ChunkID...) // in theory switch on endianness..
 	bits = appendInt32(bits, chunksize)
 	bits = append(bits, WaveID...)
