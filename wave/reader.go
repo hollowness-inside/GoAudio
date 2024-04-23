@@ -1,7 +1,6 @@
 package wave
 
 import (
-	"bytes"
 	"encoding/binary"
 	"io"
 	"io/ioutil"
@@ -224,13 +223,7 @@ func readHeader(b []byte) WaveHeader {
 	}
 
 	chunkSize := b[4:8]
-	var size uint32
-	buf := bytes.NewReader(chunkSize)
-	err := binary.Read(buf, binary.LittleEndian, &size)
-	if err != nil {
-		panic(err)
-	}
-	hdr.ChunkSize = int(size) // easier to work with ints
+	hdr.ChunkSize = bits32ToInt(chunkSize) // easier to work with ints
 
 	format := b[8:12]
 	if string(format) != "WAVE" {
